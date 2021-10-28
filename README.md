@@ -16,6 +16,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/AxelPat"><img src="https://avatars.githubusercontent.com/u/58724589?v=4?s=100" width="100px;" alt=""/><br /><sub><b>AxelPatria</b></sub></a><br /><a href="https://github.com/edgarcnp/Pervasive-Core/commits?author=axelpat" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ando-hunterz"><img src="https://avatars.githubusercontent.com/u/58421717?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ando-hunterz</b></sub></a><br /><a href="https://github.com/edgarcnp/Pervasive-Core/commits?author=ando-hunterz" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/MinorvaFalk"><img src="https://avatars.githubusercontent.com/u/58933444?v=4?s=100" width="100px;" alt=""/><br /><sub><b>MinorvaFalk</b></sub></a><br /><a href="https://github.com/edgarcnp/Pervasive-Core/commits?author=MinorvaFalk" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/houama"><img src="https://avatars.githubusercontent.com/u/58580542?v=4?s=100" width="100px;" alt=""/><br /><sub><b>houama</b></sub></a><br /><a href="https://github.com/edgarcnp/Pervasive-Core/commits?author=houama" title="Tests">⚠️</a></td>
   </tr>
 </table>
 
