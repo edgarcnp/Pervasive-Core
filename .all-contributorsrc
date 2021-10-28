@@ -34,10 +34,17 @@
       ]
     },
     {
+      "login": "MinorvaFalk",
+      "name": "MinorvaFalk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/58933444?v=4",
+      "profile": "https://github.com/MinorvaFalk",
+    },
+    {
       "login": "houama",
       "name": "houama",
       "avatar_url": "https://avatars.githubusercontent.com/u/58580542?v=4",
       "profile": "https://github.com/houama",
+    },
       "contributions": [
         "test"
       ]
