@@ -126,11 +126,7 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
-  // Check RFID UID
-  // POST UID - Check UID @Backend
-  // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
-  
-  // Check RFID UID
+ // Check RFID UID
   // POST UID - Check UID @Backend
   // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
 
