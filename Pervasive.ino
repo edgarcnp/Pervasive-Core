@@ -33,6 +33,8 @@ bool RFID_SETUP_CHECK() {
   }
 }
 
+//test123
+
 void RFID_SETUP() {
   SPI.begin();      // Init SPI bus
   mfrc522.PCD_Init();   // Init MFRC522
