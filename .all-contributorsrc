@@ -32,6 +32,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "MinorvaFalk",
+      "name": "MinorvaFalk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/58933444?v=4",
+      "profile": "https://github.com/MinorvaFalk",
+      "contributions": [
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,
