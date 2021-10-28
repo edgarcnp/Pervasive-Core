@@ -126,6 +126,7 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
+<<<<<<< HEAD
  // Check RFID UID
   // POST UID - Check UID @Backend
   // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
@@ -153,4 +154,9 @@ void loop() {
   /**
   digitalWrite(RELAY_PIN, LOW);  // unlock the door
   delay(5000);**/
+=======
+  // Check RFID UID
+  // POST UID - Check UID @Backend
+  // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
+>>>>>>> 8aaa2fd16faed33371899916776ebec84d8b078b
 }
