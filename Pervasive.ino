@@ -33,8 +33,6 @@ bool RFID_SETUP_CHECK() {
   }
 }
 
-//test123
-
 void RFID_SETUP() {
   SPI.begin();      // Init SPI bus
   mfrc522.PCD_Init();   // Init MFRC522
@@ -82,7 +80,14 @@ String read_RFID() {
 void soundBuzzer() { // kalo axel jadi beli paket promo
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, HIGH);
-  delay(1000);
+  delay(500);
+  digitalWrite(BUZZER_PIN, LOW);
+}
+
+void soundBuzzerDeny() { // kalo axel jadi beli paket promo
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(1500);
   digitalWrite(BUZZER_PIN, LOW);
 }
 
@@ -121,5 +126,7 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
-
+  // Check RFID UID
+  // POST UID - Check UID @Backend
+  // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
 }
