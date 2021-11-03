@@ -156,6 +156,16 @@ void loop() {
   delay(5000);**/
 =======
   // Check RFID UID
+  bool RFID_check = check_RFID();
+  //unsigned long startMillis = millis(); // Store the current milis (WIP auto door lock feature)
+  //unsigned long elapsedMillis = 0; // store the elapsed millis (WIP auto door lock feature)
+  RFID_SETUP();
+  while(RFID_check == 0){
+    RFID_check = check_RFID();
+    delay(0);
+  }
+
+  String RFID_UID = read_RFID();
   // POST UID - Check UID @Backend
   // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
 >>>>>>> 8aaa2fd16faed33371899916776ebec84d8b078b
