@@ -1,6 +1,6 @@
 #include <SPI.h>
 #include <MFRC522.h>
-#include <ESP_WiFiManager.h>
+ #include <ESP_WiFiManager.h>
 #include <Wire.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
@@ -13,7 +13,7 @@
 #define BUZZER_PIN      D5       // Pin for Buzzer INPUT pin
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-ESP_WiFiManager wifiManager;
+//ESP_WiFiManager wifiManager;
 
 bool RFID_SETUP_CHECK() {
   Serial.println("Open");
@@ -127,16 +127,55 @@ void setup() {
 // the loop function runs over and over again forever
 void loop() {
   // Check RFID UID
+  // POST UID - Check UID @Backend
+  // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
+
+  digitalWrite(RELAY_PIN, HIGH); // lock the door continously
+
+ Check for RFID Data
+  Serial.println("Check for RFID DATA");
   bool RFID_check = check_RFID();
-  //unsigned long startMillis = millis(); // Store the current milis (WIP auto door lock feature)
-  //unsigned long elapsedMillis = 0; // store the elapsed millis (WIP auto door lock feature)
+  unsigned long startMillis = millis(); // Store the current milis
+  unsigned long elapsedMillis = 0; // store the elapsed millis
   RFID_SETUP();
   while(RFID_check == 0){
     RFID_check = check_RFID();
-    delay(0);
   }
 
   String RFID_UID = read_RFID();
-  // POST UID - Check UID @Backend
-  // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
+  pinMode(D6, OUTPUT);
+  digitalWrite(D6, HIGH);
+  delay(1000);
+  Serial.println("RFID data received, continue to post");
+  //begin posting i hope
+  int respondCode = POST_API(RFID_UID);
+  if(respondCode == 200){
+    soundBuzzer();
+    UnlockNormal();
+  }else if(respondCode() == 400){
+    soundBuzzerDeny();
+    return;
+  }else{
+    Serial.println("No Respond Code!");
+    soundBuzzerDeny();
+    return;
+  }
 }
+
+
+
+
+////  // Check RFID UID
+////  bool RFID_check = check_RFID();
+////  //unsigned long startMillis = millis(); // Store the current milis (WIP auto door lock feature)
+////  //unsigned long elapsedMillis = 0; // store the elapsed millis (WIP auto door lock feature)
+////  RFID_SETUP();
+////  while(RFID_check == 0){
+////    RFID_check = check_RFID();
+////    delay(0);
+////  }
+////
+////  String RFID_UID = read_RFID();
+////  // POST UID - Check UID @Backend
+////  // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
+////}
