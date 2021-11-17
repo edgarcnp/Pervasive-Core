@@ -6,6 +6,7 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 #include <ArduinoJson.h>
+#include <PubSubClient.h>
 
 #define RST_PIN         D3          // Pin for RFID reset pin
 #define SS_PIN          D4         // Pin for SS RFID pin
@@ -14,8 +15,50 @@
 #define BUTTON_PIN      D2      // Pin for Button
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
+WiFiClientSecure espClient;
+PubSubClient client(espClient);
 ESP_WiFiManager wifiManager;
 
+
+// MQTT Credentials
+const char *mqtt_broker = "54d8ff23e4294bcc971994bb72f83839.s1.eu.hivemq.cloud";
+const char *topic = "node/check";
+const char *mqtt_username = "smartlock";
+const char *mqtt_password = "Smartlock_pervasive2021";
+const int mqtt_port = 8883;
+
+bool MQTT_SETUP(){
+  client.setServer(mqtt_broker, mqtt_port);
+  client.setCallback(callback);
+  
+  String client_id = "esp8266-client-";
+      client_id += String(WiFi.macAddress());
+      Serial.printf("The client %s connects to the mqtt broker\n", client_id.c_str());
+      if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+	  Serial.println("connected");      
+          client.subscribe(topic);
+	  return 1;      
+      } else {
+          Serial.print("failed with state ");
+          Serial.print(client.state());
+          return 0;
+      }
+  }
+
+}
+
+void callback(char *topic, byte *payload, unsigned int length) {
+  Serial.print("Message arrived in topic: ");
+  Serial.println(topic);
+  Serial.print("Message:");
+  for (int i = 0; i < length; i++) {
+      Serial.print((char) payload[i]);
+  }
+  Serial.println();
+  Serial.println("-----------------------");
+}
+
+// Setup check for RFID
 bool RFID_SETUP_CHECK() {
   Serial.println("Open");
   while (!Serial);                   // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
@@ -47,16 +90,20 @@ bool check_RFID() {
   if (!mfrc522.PICC_ReadCardSerial()) {
     return 0;
   }
+
   Serial.println("RFID Present");
+  
   return 1;
 }
 
 bool checkButton(){ // function that checks the button if it is pressed or not
   pinMode(BUTTON_PIN, INPUT);
+  
   bool check = digitalRead(BUTTON_PIN);
-  if(check == 1){
+  
+  if (check == 1) {
     return 1;
-  }else{
+  } else {
     return 0;
   }
 }
@@ -131,6 +178,8 @@ void setup() {
     return;
   }else{
     Serial.println("Wi-Fi Connected");
+    espClient.setInsecure();
+    
   }
   bool rfidStatus = RFID_SETUP_CHECK();
   if (rfidStatus == false) {
@@ -140,6 +189,15 @@ void setup() {
       delay(1000);
       Serial.print("rfidStatus: ");
       Serial.println(rfidStatus);
+    }
+  }
+  bool mqttStatus = MQTT_SETUP();
+  if(mqttStatus == false) {
+    while(mqttStatus == false) {
+      mqttStatus = MQTT_SETUP();
+      delay(1000);
+      Serial.print("mqttStatus: ");
+      Serial.println(mqttStatus);
     }
   }
 }
