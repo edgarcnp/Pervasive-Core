@@ -51,7 +51,8 @@ bool check_RFID() {
   return 1;
 }
 bool checkButton(){
-  if(digitalRead(BUTTON_PIN) == HIGH){
+  bool buttonPin = digitalRead(BUTTON_PIN)
+  if(buttonPin == 1){
     return 1;
   }else{
     return 0;
