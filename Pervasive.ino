@@ -90,6 +90,14 @@ bool check_RFID() {
   Serial.println("RFID Present");
   return 1;
 }
+bool checkButton(){
+  bool buttonPin = digitalRead(BUTTON_PIN)
+  if(buttonPin == 1){
+    return 1;
+  }else{
+    return 0;
+  }
+}
 
 String read_RFID() {
   Serial.println("Reading RFID UID");
