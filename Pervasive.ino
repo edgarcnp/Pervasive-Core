@@ -19,7 +19,6 @@ WiFiClientSecure espClient;
 PubSubClient client(espClient);
 ESP_WiFiManager wifiManager;
 
-
 // MQTT Credentials
 const char *mqtt_broker = "54d8ff23e4294bcc971994bb72f83839.s1.eu.hivemq.cloud";
 const char *topic = "node/check";
@@ -115,19 +114,20 @@ String read_RFID() {
   return userid;
 }
 
-//int POST_API (String uid) {
-//  Serial.println("Begin API POST");
-//  HTTPClient http;
-//  http.begin("http://192.168.0.10:7070/api/userLog/albertque");
-//  http.addHeader("Content-Type", "application/json");
-//  Serial.println("UID: "+uid);
-//  int httpResponseCode = http.POST("{\"uid\": \""+uid+"\"}");
-//  Serial.println("StatusCode: "+httpResponseCode);
-//  if(httpResponseCode == 200) Serial.println("API POST OK, Response is 200");
-//  else if(httpResponseCode == 400) Serial.println("API POST OK, Status NOT OK, Response is 400");
-//  else Serial.println("API POST IS NOT OK, CHECK IP OR SERVER");
-//  return httpResponseCode;
-//}
+int POST_API (String uid, unsigned int nodeID) {
+  Serial.println("Begin API POST");
+  HTTPClient http;
+  //http.begin("http://192.168.0.10:7070/api/userLog/albertque");
+  http.addHeader("Content-Type", "application/json");
+  Serial.println("UID: "+uid);
+  Serial.println("nodeID: "+nodeID);
+  int httpResponseCode = http.POST("{\"uid\":\""+uid+"\"}");
+  Serial.println("StatusCode: "+httpResponseCode);
+  if(httpResponseCode == 200) Serial.println("API POST OK, Response is 200");
+  else if(httpResponseCode == 400) Serial.println("API POST OK, Status NOT OK, Response is 400");
+  else Serial.println("API POST IS NOT OK, CHECK IP OR SERVER");
+  return httpResponseCode;
+}
 
 void soundBuzzer() { // sound the buzzer indicating that user identification is valid or button is pressed
   pinMode(BUZZER_PIN, OUTPUT);
@@ -163,7 +163,6 @@ void lockDoor(){  //For locking the door
 // the setup function runs once when you press reset or power the board
 void setup() {
   delay(1000);
-  int nodeID = 1; // For multi-nodes operation
   Serial.begin(9600);
   WiFi.mode(WIFI_STA);
   bool connect = wifiManager.autoConnect("RLS-Library", "libraryumn"); // Wifi Manager Setup
@@ -202,7 +201,7 @@ void loop() {
   // Check RFID UID 
   // POST UID - Check UID @Backend
   // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
-  
+
   lockDoor(); //Lock the door (Normal State)
   
   //Check for RFID Data
@@ -223,16 +222,17 @@ void loop() {
     delay(50);
   }else if(RFID_check == 1){
     String RFID_UID = read_RFID();
+    unsigned int nodeID = 1; // For multi-nodes operation
     Serial.println("RFID data received, continue to post");
-    int respondCode = 200; //POST_API(RFID_UID);
-    if(respondCode == 200){
+    int HTTPresponseCode = POST_API(RFID_UID, nodeID);
+    if(HTTPresponseCode == 200){
       unlockNormal();
-    }else if(respondCode == 400){
+    }else if(HTTPresponseCode == 400){
       soundBuzzerDeny();
       lockDoor();
       return;
     }else{
-      Serial.println("No Respond Code!");
+      Serial.println("HTTPresponseCode Invalid");
       soundBuzzerDeny();
       lockDoor();
       return;
@@ -241,4 +241,4 @@ void loop() {
     Serial.println("RFID_check Malfunction");
     return;
   }
-} 
+}
