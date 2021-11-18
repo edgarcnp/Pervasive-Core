@@ -32,19 +32,17 @@ bool MQTT_SETUP(){
   client.setCallback(callback);
   
   String client_id = "esp8266-client-";
-      client_id += String(WiFi.macAddress());
-      Serial.printf("The client %s connects to the mqtt broker\n", client_id.c_str());
-      if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+  client_id += String(WiFi.macAddress());
+  Serial.printf("The client %s connects to the mqtt broker\n", client_id.c_str());
+  if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
 	  Serial.println("connected");      
-          client.subscribe(topic);
+    client.subscribe(topic);
 	  return 1;      
-      } else {
-          Serial.print("failed with state ");
-          Serial.print(client.state());
-          return 0;
-      }
+  }else {
+    Serial.print("failed with state ");
+    Serial.print(client.state());
+    return 0;
   }
-
 }
 
 void callback(char *topic, byte *payload, unsigned int length) {
@@ -90,16 +88,14 @@ bool check_RFID() {
   if (!mfrc522.PICC_ReadCardSerial()) {
     return 0;
   }
-
   Serial.println("RFID Present");
-  
   return 1;
 }
 
 bool checkButton(){ // function that checks the button if it is pressed or not
   pinMode(BUTTON_PIN, INPUT);
-  bool buttonPin = digitalRead(BUTTON_PIN)
-  if(buttonPin == 1){
+  bool check = digitalRead(BUTTON_PIN);
+  if (check == 1) {
     return 1;
   } else {
     return 0;
@@ -213,43 +209,36 @@ void loop() {
   Serial.println("Check for RFID DATA");
   bool RFID_check = check_RFID();
   bool Button_check = checkButton();
-  RFID_SETUP();
   
-  while(RFID_check == 0 && Button_check == 0){ // check if there is any RFID cards to read or not
-    Serial.println("Waiting for RFID Cards");
+  if(Button_check == 1){ //Check if user pushes the button
+    Serial.println("Button Pressed");
+    soundBuzzer(); 
+    unlockNormal();
+    soundBuzzer();
+    return;
+  }
+  if(RFID_check == 0){
+    Serial.println("Waiting for RFID Cards"); // check if there is any RFID cards to read or not
     RFID_check = check_RFID();
     delay(50);
-    if(Button_check == 1){ //Check if user pushes the button
-      Serial.println("Button Pressed");
-      soundBuzzer(); 
+  }else if(RFID_check == 1){
+    String RFID_UID = read_RFID();
+    Serial.println("RFID data received, continue to post");
+    int respondCode = 200; //POST_API(RFID_UID);
+    if(respondCode == 200){
       unlockNormal();
-      soundBuzzer();
+    }else if(respondCode == 400){
+      soundBuzzerDeny();
+      lockDoor();
+      return;
+    }else{
+      Serial.println("No Respond Code!");
+      soundBuzzerDeny();
+      lockDoor();
       return;
     }
+  }else{
+    Serial.println("RFID_check Malfunction");
+    return;
   }
-  
-//  if(Button_check == 1){
-//   Serial.println("Button Pressed"); //Check if user pushes button
-//   soundBuzzer(); 
-//   unlockNormal();
-//   soundBuzzer();
-//   return;
-//  }
-    
-  String RFID_UID = read_RFID();
-  Serial.println("RFID data received, continue to post");
-//  int respondCode = POST_API(RFID_UID);
-//  if(respondCode == 200){
-//    soundBuzzer();
-//    unlockNormal();
-//  }else if(respondCode == 400){
-//    soundBuzzerDeny();
-//    lockDoor();
-//    return;
-//  }else{
-//    Serial.println("No Respond Code!");
-//    soundBuzzerDeny();
-//    lockDoor();
-//    return;
-//  }
-}
+} 
