@@ -234,6 +234,6 @@ void loop() {
     }
   }else{
     Serial.println("RFID_check Malfunction");
-    return;s
+    return;
   }
 }
