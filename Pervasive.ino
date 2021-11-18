@@ -91,6 +91,15 @@ bool check_RFID() {
   return 1;
 }
 
+bool checkButton(){
+  bool buttonPin = digitalRead(BUTTON_PIN)
+  if(buttonPin == 1){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
 String read_RFID() {
   Serial.println("Reading RFID UID");
   String userid;
@@ -198,7 +207,6 @@ void setup() {
 // the loop function runs over and over again forever
 void loop() {
   lockDoor(); //Lock the door (Normal State)
-
   Serial.println("Check for RFID DATA");
   bool RFID_check = check_RFID();
   Serial.println("Check for Button Status");
@@ -226,6 +234,6 @@ void loop() {
     }
   }else{
     Serial.println("RFID_check Malfunction");
-    return;
+    return;s
   }
 }
