@@ -91,16 +91,6 @@ bool check_RFID() {
   return 1;
 }
 
-bool checkButton(){ // function that checks the button if it is pressed or not
-  pinMode(BUTTON_PIN, INPUT);
-  bool check = digitalRead(BUTTON_PIN);
-  if (check == 1) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
 String read_RFID() {
   Serial.println("Reading RFID UID");
   String userid;
@@ -160,6 +150,16 @@ void lockDoor(){  //For locking the door
   Serial.println("Door's Locked");
 }
 
+bool checkButton(){ // function that checks the button if it is pressed or not
+  pinMode(BUTTON_PIN, INPUT);
+  bool check = digitalRead(BUTTON_PIN);
+  if (check == 1) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 // the setup function runs once when you press reset or power the board
 void setup() {
   delay(1000);
@@ -197,48 +197,55 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
-  // If card is not present then check button
-  // Check RFID UID 
-  // POST UID - Check UID @Backend
-  // Receive ResponseCode, if(400, UnlockNormal()), if(200, soundBuzzerDeny(), continue)
-
   lockDoor(); //Lock the door (Normal State)
-  
-  //Check for RFID Data
-  Serial.println("Check for RFID DATA");
-  bool RFID_check = check_RFID();
-  bool Button_check = checkButton();
-  
-  if(Button_check == 1){ //Check if user pushes the button
-    Serial.println("Button Pressed");
-    soundBuzzer(); 
-    unlockNormal();
-    soundBuzzer();
-    return;
-  }
-  if(RFID_check == 0){
-    Serial.println("Waiting for RFID Cards"); // check if there is any RFID cards to read or not
-    RFID_check = check_RFID();
-    delay(50);
-  }else if(RFID_check == 1){
-    String RFID_UID = read_RFID();
-    unsigned int nodeID = 1; // For multi-nodes operation
-    Serial.println("RFID data received, continue to post");
-    int HTTPresponseCode = POST_API(RFID_UID, nodeID);
-    if(HTTPresponseCode == 200){
-      unlockNormal();
-    }else if(HTTPresponseCode == 400){
-      soundBuzzerDeny();
-      lockDoor();
-      return;
+
+  try{
+    Serial.println("Check for RFID DATA");
+    bool RFID_check = check_RFID();
+    Serial.println("Check for Button Status")'
+    bool Button_check = checkButton();
+    
+    if(RFID_check == 0){
+      if(Button_check == 1){ //Check if user pushes the button
+        Serial.println("Button Pressed");
+        soundBuzzer(); 
+        unlockNormal();
+        soundBuzzer();
+        throw(69);
+        return;
+      }
+    }else if(RFID_check == 1){
+      String RFID_UID = read_RFID();
+      unsigned int nodeID = 1; // For multi-nodes operation
+      Serial.println("RFID data received, continue to post");
+      int HTTPresponseCode = POST_API(RFID_UID, nodeID); //API POST
+      if(HTTPresponseCode == 200){
+        unlockNormal();
+        throw(200);
+      }else if(HTTPresponseCode == 400){
+        soundBuzzerDeny();
+        lockDoor();
+        throw(400);
+        return;
+      }
     }else{
-      Serial.println("HTTPresponseCode Invalid");
-      soundBuzzerDeny();
-      lockDoor();
+      Serial.println("RFID_check Malfunction");
       return;
     }
-  }else{
-    Serial.println("RFID_check Malfunction");
-    return;
+  }
+  catch(unsigned int errCode){
+    switch(errCode){
+      case(69):
+        Serial.println("Nice");
+        break;
+      case(200):
+        Serial.println("API POST OK");
+        break;
+      case(400):
+        Serial.println("API POST OK, Status NOT OK");
+        break;
+      default:
+      break;
+    }
   }
 }
