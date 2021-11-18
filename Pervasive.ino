@@ -201,7 +201,7 @@ void loop() {
 
   Serial.println("Check for RFID DATA");
   bool RFID_check = check_RFID();
-  Serial.println("Check for Button Status")'
+  Serial.println("Check for Button Status");
   bool Button_check = checkButton();
   
   if(RFID_check == 0){
