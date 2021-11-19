@@ -91,15 +91,6 @@ bool check_RFID() {
   return 1;
 }
 
-bool checkButton(){
-  bool buttonPin = digitalRead(BUTTON_PIN)
-  if(buttonPin == 1){
-    return 1;
-  }else{
-    return 0;
-  }
-}
-
 String read_RFID() {
   Serial.println("Reading RFID UID");
   String userid;
@@ -181,7 +172,6 @@ void setup() {
   }else{
     Serial.println("Wi-Fi Connected");
     espClient.setInsecure();
-    
   }
   bool rfidStatus = RFID_SETUP_CHECK();
   if (rfidStatus == false) {
@@ -224,16 +214,19 @@ void loop() {
     String RFID_UID = read_RFID();
     unsigned int nodeID = 1; // For multi-nodes operation
     Serial.println("RFID data received, continue to post");
-    int HTTPresponseCode = POST_API(RFID_UID, nodeID); //API POST
-    if(HTTPresponseCode == 200){
+    int httpResp = POST_API(RFID_UID, nodeID); //API POST
+    if(httpResp == 200){
+      Serial.println("API Approved, Door's Unlocked");
       unlockNormal();
-    }else if(HTTPresponseCode == 400){
+    }else if(httpResp == 400){
+      Serial.println("API Denied, Door's Remain Locked");
       soundBuzzerDeny();
       lockDoor();
       return;
     }
   }else{
-    Serial.println("RFID_check Malfunction");
+    Serial.println("RFID_check Malfunction, Check Response Code");
     return;
   }
+  client.loop();
 }
