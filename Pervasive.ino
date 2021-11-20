@@ -107,7 +107,7 @@ String read_RFID() {
 int POST_API (String uid, unsigned int nodeID) {
   Serial.println("Begin API POST");
   HTTPClient http;
-  //http.begin("http://192.168.0.10:7070/api/userLog/albertque");
+  http.begin("https://smartlockpervasive.herokuapp.com/api/nodes/"+to_string(nodeID);  
   http.addHeader("Content-Type", "application/json");
   Serial.println("UID: "+uid);
   Serial.println("nodeID: "+nodeID);
