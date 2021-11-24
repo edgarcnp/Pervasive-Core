@@ -1,12 +1,14 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <ESP_WiFiManager.h>
+#include <WiFiManager.h>
 #include <Wire.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
+#include <string>
 
 #define RST_PIN         D3          // Pin for RFID reset pin
 #define SS_PIN          D4         // Pin for SS RFID pin
@@ -17,7 +19,7 @@
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
-ESP_WiFiManager wifiManager;
+WiFiManager wifiManager;
 
 // MQTT Credentials
 const char *mqtt_broker = "54d8ff23e4294bcc971994bb72f83839.s1.eu.hivemq.cloud";
@@ -104,10 +106,27 @@ String read_RFID() {
   return userid;
 }
 
-int POST_API (String uid, unsigned int nodeID) {
+int POST_CHECK (String uid, unsigned int nodeID) {
+  String nodeString = String(nodeID);
   Serial.println("Begin API POST");
   HTTPClient http;
-  http.begin("https://smartlockpervasive.herokuapp.com/api/nodes/"+to_string(nodeID);  
+  http.begin("https://smartlockpervasive.herokuapp.com/api/nodes/"+nodeString);  
+  http.addHeader("Content-Type", "application/json");
+  Serial.println("UID: "+uid);
+  Serial.println("nodeID: "+nodeID);
+  int httpResponseCode = http.POST("{\"uid\":\""+uid+"\"}");
+  Serial.println("StatusCode: "+httpResponseCode);
+  if(httpResponseCode == 200) Serial.println("API POST OK, Response is 200");
+  else if(httpResponseCode == 400) Serial.println("API POST OK, Status NOT OK, Response is 400");
+  else Serial.println("API POST IS NOT OK, CHECK IP OR SERVER");
+  return httpResponseCode;
+}
+
+int POST_API (String uid, unsigned int nodeID) {
+  String nodeString = String(nodeID);
+  Serial.println("Begin API POST");
+  HTTPClient http;
+  http.begin("https://smartlockpervasive.herokuapp.com/api/nodes/"+nodeString);  
   http.addHeader("Content-Type", "application/json");
   Serial.println("UID: "+uid);
   Serial.println("nodeID: "+nodeID);
@@ -173,16 +192,16 @@ void setup() {
     Serial.println("Wi-Fi Connected");
     espClient.setInsecure();
   }
-  bool rfidStatus = RFID_SETUP_CHECK();
-  if (rfidStatus == false) {
-    Serial.println("RFID SETUP FAILED, CHECK CONNECTION");
-    while (rfidStatus == false) {
-      rfidStatus = RFID_SETUP_CHECK();
-      delay(1000);
-      Serial.print("rfidStatus: ");
-      Serial.println(rfidStatus);
-    }
-  }
+//  bool rfidStatus = RFID_SETUP_CHECK();
+//  if (rfidStatus == false) {
+//    Serial.println("RFID SETUP FAILED, CHECK CONNECTION");
+//    while (rfidStatus == false) {
+//      rfidStatus = RFID_SETUP_CHECK();
+//      delay(1000);
+//      Serial.print("rfidStatus: ");
+//      Serial.println(rfidStatus);
+//    }
+//  }
   bool mqttStatus = MQTT_SETUP();
   if(mqttStatus == false) {
     while(mqttStatus == false) {
@@ -198,7 +217,8 @@ void setup() {
 void loop() {
   lockDoor(); //Lock the door (Normal State)
   Serial.println("Check for RFID DATA");
-  bool RFID_check = check_RFID();
+//  bool RFID_check = check_RFID();
+  bool RFID_check = 0;
   Serial.println("Check for Button Status");
   bool Button_check = checkButton();
   
@@ -208,6 +228,12 @@ void loop() {
       soundBuzzer(); 
       unlockNormal();
       soundBuzzer();
+      Serial.println("mqtt");
+      client.loop();
+      return;
+    } else {
+      Serial.println("mqtt");
+      client.loop();
       return;
     }
   }else if(RFID_check == 1){
@@ -218,15 +244,20 @@ void loop() {
     if(httpResp == 200){
       Serial.println("API Approved, Door's Unlocked");
       unlockNormal();
+      Serial.println("mqtt");
+      client.loop();
+      return;
     }else if(httpResp == 400){
       Serial.println("API Denied, Door's Remain Locked");
       soundBuzzerDeny();
       lockDoor();
+      Serial.println("mqtt");
+      client.loop();
       return;
     }
   }else{
     Serial.println("RFID_check Malfunction, Check Response Code");
     return;
   }
-  client.loop();
+
 }
