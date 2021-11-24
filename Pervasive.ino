@@ -55,7 +55,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
   }
   Serial.println();
   Serial.println("-----------------------");
-  bool responseCode = POST_CHECK();
+   unsigned int nodeID = 1;
+  bool responseCode = POST_CHECK(nodeID);
   if(responseCode == 400) Serial.println("Check Failed");
 }
 
@@ -108,13 +109,12 @@ String read_RFID() {
   return userid;
 }
 
-int POST_CHECK (String uid, unsigned int nodeID) {
+int POST_CHECK (unsigned int nodeID) {
   String nodeString = String(nodeID);
   Serial.println("Begin API POST");
   HTTPClient http;
   http.begin("https://smartlockpervasive.herokuapp.com/api/nodes/"+nodeString+"/checkActive");  
-  http.addHeader("Content-Type", "application/json");
-  Serial.println("UID: "+uid);
+  http.addHeader("Content-Type", "application/json"); 
   Serial.println("nodeID: "+nodeID);
   int httpResponseCode = http.GET();
   Serial.println("StatusCode: "+httpResponseCode);
@@ -230,11 +230,9 @@ void loop() {
       soundBuzzer(); 
       unlockNormal();
       soundBuzzer();
-      Serial.println("mqtt");
       client.loop();
       return;
     } else {
-      Serial.println("mqtt");
       client.loop();
       return;
     }
@@ -246,14 +244,12 @@ void loop() {
     if(httpResp == 200){
       Serial.println("API Approved, Door's Unlocked");
       unlockNormal();
-      Serial.println("mqtt");
       client.loop();
       return;
     }else if(httpResp == 400){
       Serial.println("API Denied, Door's Remain Locked");
       soundBuzzerDeny();
       lockDoor();
-      Serial.println("mqtt");
       client.loop();
       return;
     }
