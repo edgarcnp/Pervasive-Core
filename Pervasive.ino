@@ -55,6 +55,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
   }
   Serial.println();
   Serial.println("-----------------------");
+  bool responseCode = POST_CHECK();
+  if(responseCode == 400) Serial.println("Check Failed");
 }
 
 // Setup check for RFID
@@ -110,11 +112,11 @@ int POST_CHECK (String uid, unsigned int nodeID) {
   String nodeString = String(nodeID);
   Serial.println("Begin API POST");
   HTTPClient http;
-  http.begin("https://smartlockpervasive.herokuapp.com/api/nodes/"+nodeString);  
+  http.begin("https://smartlockpervasive.herokuapp.com/api/nodes/"+nodeString+"/checkActive");  
   http.addHeader("Content-Type", "application/json");
   Serial.println("UID: "+uid);
   Serial.println("nodeID: "+nodeID);
-  int httpResponseCode = http.POST("{\"uid\":\""+uid+"\"}");
+  int httpResponseCode = http.GET();
   Serial.println("StatusCode: "+httpResponseCode);
   if(httpResponseCode == 200) Serial.println("API POST OK, Response is 200");
   else if(httpResponseCode == 400) Serial.println("API POST OK, Status NOT OK, Response is 400");
