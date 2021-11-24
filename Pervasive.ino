@@ -13,7 +13,7 @@
 #define RST_PIN         D3          // Pin for RFID reset pin
 #define SS_PIN          D4         // Pin for SS RFID pin
 #define RELAY_PIN       D6        // The Arduino pin, which connects to the IN pin of relay
-#define BUZZER_PIN      D5       // Pin for Buzzer INPUT pin
+#define BUZZER_PIN      D8       // Pin for Buzzer INPUT pin
 #define BUTTON_PIN      D2      // Pin for Button
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
