@@ -183,6 +183,7 @@ bool checkButton(){ // function that checks the button if it is pressed or not
 
 // the setup function runs once when you press reset or power the board
 void setup() {
+  RFID_SETUP_CHECK();
   delay(1000);
   Serial.begin(9600);
   WiFi.mode(WIFI_STA);
@@ -194,16 +195,6 @@ void setup() {
     Serial.println("Wi-Fi Connected");
     espClient.setInsecure();
   }
-//  bool rfidStatus = RFID_SETUP_CHECK();
-//  if (rfidStatus == false) {
-//    Serial.println("RFID SETUP FAILED, CHECK CONNECTION");
-//    while (rfidStatus == false) {
-//      rfidStatus = RFID_SETUP_CHECK();
-//      delay(1000);
-//      Serial.print("rfidStatus: ");
-//      Serial.println(rfidStatus);
-//    }
-//  }
   bool mqttStatus = MQTT_SETUP();
   if(mqttStatus == false) {
     while(mqttStatus == false) {
@@ -227,7 +218,7 @@ void loop() {
   if(RFID_check == 0){
     if(Button_check == 1){ //Check if user pushes the button
       Serial.println("Button Pressed");
-      soundBuzzer(); 
+      soundBuzzer();
       unlockNormal();
       soundBuzzer();
       client.loop();
@@ -237,6 +228,7 @@ void loop() {
       return;
     }
   }else if(RFID_check == 1){
+    RFID_SETUP();
     String RFID_UID = read_RFID();
     unsigned int nodeID = 1; // For multi-nodes operation
     Serial.println("RFID data received, continue to post");
