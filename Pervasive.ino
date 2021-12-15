@@ -12,7 +12,7 @@
 
 #define RST_PIN         D3          // Pin for RFID reset pin
 #define SS_PIN          D4         // Pin for SS RFID pin
-#define RELAY_PIN       D6        // The Arduino pin, which connects to the IN pin of relay
+#define RELAY_PIN       D1   // The Arduino pin, which connects to the IN pin of relay
 #define BUZZER_PIN      D8       // Pin for Buzzer INPUT pin
 #define BUTTON_PIN      D2      // Pin for Button
 
@@ -113,7 +113,7 @@ int POST_CHECK (unsigned int nodeID) {
   String nodeString = String(nodeID);
   Serial.println("Begin API POST");
   HTTPClient http;
-  http.begin("https://smartlockpervasive.herokuapp.com/api/nodes/"+nodeString+"/checkActive");  
+  http.begin(espClient, "https://smartlockpervasive.herokuapp.com/api/nodes/"+nodeString+"/checkActive");  
   http.addHeader("Content-Type", "application/json"); 
   Serial.println("nodeID: "+nodeID);
   int httpResponseCode = http.GET();
@@ -125,13 +125,14 @@ int POST_CHECK (unsigned int nodeID) {
 }
 
 int POST_API (String uid, unsigned int nodeID) {
+  Serial.println(nodeID);
   String nodeString = String(nodeID);
   Serial.println("Begin API POST");
   HTTPClient http;
-  http.begin("https://smartlockpervasive.herokuapp.com/api/nodes/"+nodeString);  
+  http.begin(espClient, "https://smartlockpervasive.herokuapp.com/api/nodes/"+nodeString+"/check");  
   http.addHeader("Content-Type", "application/json");
   Serial.println("UID: "+uid);
-  Serial.println("nodeID: "+nodeID);
+  Serial.println("nodeID: "+nodeString);
   int httpResponseCode = http.POST("{\"uid\":\""+uid+"\"}");
   Serial.println("StatusCode: "+httpResponseCode);
   if(httpResponseCode == 200) Serial.println("API POST OK, Response is 200");
@@ -155,7 +156,7 @@ void soundBuzzerDeny() { // sound the buzzer indicating that user identification
 }
 
 void unlockNormal() { // Normal Operation (LOW Trigger)
-  pinMode(D6, OUTPUT);
+  pinMode(RELAY+PIN, OUTPUT);
   soundBuzzer();
   digitalWrite(RELAY_PIN, LOW); // unlock the door
   Serial.println("Door's Opened");
@@ -166,7 +167,7 @@ void unlockNormal() { // Normal Operation (LOW Trigger)
 }
 
 void lockDoor(){  //For locking the door
-  pinMode(D6, OUTPUT);
+  pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, HIGH);  // lock the door
   Serial.println("Door's Locked");
 }
@@ -174,7 +175,7 @@ void lockDoor(){  //For locking the door
 bool checkButton(){ // function that checks the button if it is pressed or not
   pinMode(BUTTON_PIN, INPUT);
   bool check = digitalRead(BUTTON_PIN);
-  if (check == 1) {
+  if (check == 0) {
     return 1;
   } else {
     return 0;
@@ -183,7 +184,6 @@ bool checkButton(){ // function that checks the button if it is pressed or not
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  RFID_SETUP_CHECK();
   delay(1000);
   Serial.begin(9600);
   WiFi.mode(WIFI_STA);
@@ -195,6 +195,18 @@ void setup() {
     Serial.println("Wi-Fi Connected");
     espClient.setInsecure();
   }
+   Serial.println("SETUP THE RFID");
+     // Commented while RFID module is being fixed
+   bool rfidStatus = RFID_SETUP_CHECK();
+   if(rfidStatus == false) {
+    Serial.println("RFID SETUP FAILED, CHECK CONNECTION");
+    while(rfidStatus == false){
+      rfidStatus = RFID_SETUP_CHECK();
+      delay(1000);
+      Serial.print("rfidStatus: ");
+      Serial.println(rfidStatus);
+    }
+   }
   bool mqttStatus = MQTT_SETUP();
   if(mqttStatus == false) {
     while(mqttStatus == false) {
@@ -209,9 +221,10 @@ void setup() {
 // the loop function runs over and over again forever
 void loop() {
   lockDoor(); //Lock the door (Normal State)
+  RFID_SETUP();
   Serial.println("Check for RFID DATA");
-//  bool RFID_check = check_RFID();
-  bool RFID_check = 0;
+  bool RFID_check = check_RFID();
+  //bool RFID_check = 0;
   Serial.println("Check for Button Status");
   bool Button_check = checkButton();
   
@@ -230,7 +243,7 @@ void loop() {
   }else if(RFID_check == 1){
     RFID_SETUP();
     String RFID_UID = read_RFID();
-    unsigned int nodeID = 1; // For multi-nodes operation
+    unsigned int nodeID = 3; // For multi-nodes operation
     Serial.println("RFID data received, continue to post");
     int httpResp = POST_API(RFID_UID, nodeID); //API POST
     if(httpResp == 200){
@@ -238,7 +251,7 @@ void loop() {
       unlockNormal();
       client.loop();
       return;
-    }else if(httpResp == 400){
+    }else if(httpResp == 204){
       Serial.println("API Denied, Door's Remain Locked");
       soundBuzzerDeny();
       lockDoor();
